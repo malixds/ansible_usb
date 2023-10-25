@@ -1,0 +1,38 @@
+---
+# tasks file for usb_check
+- name: Get list of USB devices before insertion
+  command: lsusb
+  register: usb_before
+  changed_when: False
+
+- name: Ask user to insert USB device
+  pause:
+    prompt: "Please insert a USB device and press Enter"
+
+- name: Get list of USB devices after insertion
+  command: lsusb
+  register: usb_after
+  changed_when: False
+
+- name: Verify that a new USB device is inserted
+  assert:
+    that:
+      - usb_before.stdout_lines != usb_after.stdout_lines
+    fail_msg: "No new USB device detected. Please make sure you inserted it properly."
+    success_msg: "New USB device detected."
+
+- name: Ask user to remove the USB device
+  pause:
+    prompt: "Please remove the USB device you inserted and press Enter"
+
+- name: Get list of USB devices after removal
+  command: lsusb
+  register: usb_final
+  changed_when: False
+
+- name: Verify that the USB device is removed
+  assert:
+    that:
+      - usb_after.stdout_lines != usb_final.stdout_lines
+    fail_msg: "USB device still detected. Please make sure you removed it properly."
+    success_msg: "USB device removed successfully."
